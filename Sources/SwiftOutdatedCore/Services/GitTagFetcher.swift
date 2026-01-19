@@ -22,13 +22,16 @@ public struct GitTagFetcher: GitTagFetching, Sendable {
         process.standardError = FileHandle.nullDevice
 
         try process.run()
+
+        // Read data before waiting - avoids deadlock if pipe buffer fills
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+
         process.waitUntilExit()
 
         guard process.terminationStatus == 0 else {
             throw GitTagFetcherError.fetchFailed(repositoryURL)
         }
 
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
         guard let output = String(data: data, encoding: .utf8) else {
             return []
         }

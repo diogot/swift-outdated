@@ -19,6 +19,9 @@ struct SwiftOutdated: AsyncParsableCommand {
     @Flag(name: .long, help: "Output results in JSON format")
     var json: Bool = false
 
+    @Flag(name: .long, help: "Show all dependencies, not just outdated ones")
+    var all: Bool = false
+
     @Argument(help: "Path to directory, .xcodeproj, .xcworkspace, or Package.resolved file")
     var path: String?
 
@@ -58,13 +61,13 @@ struct SwiftOutdated: AsyncParsableCommand {
         let output = ConsoleOutput()
         if json {
             do {
-                let jsonOutput = try output.formatJSON(checkedDependencies)
+                let jsonOutput = try output.formatJSON(checkedDependencies, showAll: all)
                 print(jsonOutput)
             } catch {
                 throw ValidationError("Failed to format output as JSON")
             }
         } else {
-            print(output.formatTable(checkedDependencies))
+            print(output.formatTable(checkedDependencies, showAll: all))
         }
     }
 }

@@ -61,22 +61,38 @@ public struct ResolvedFileLocator: Sendable {
             return directPath
         }
 
-        // Check for .xcodeproj directories and search inside them
+        // Search for .xcworkspace in current directory and parent directories
+        // Workspaces are preferred over .xcodeproj as they represent the top-level project
+        var currentDir = searchDirectory
+        while true {
+            if let contents = try? fileManager.contentsOfDirectory(atPath: currentDir) {
+                for item in contents {
+                    if item.hasSuffix(".xcworkspace") {
+                        let xcworkspacePath = (currentDir as NSString).appendingPathComponent(item)
+                        let resolvedPath = (xcworkspacePath as NSString).appendingPathComponent(
+                            "xcshareddata/swiftpm/Package.resolved"
+                        )
+                        if fileManager.fileExists(atPath: resolvedPath) {
+                            return resolvedPath
+                        }
+                    }
+                }
+            }
+
+            let parentDir = (currentDir as NSString).deletingLastPathComponent
+            if parentDir == currentDir {
+                break // Reached root
+            }
+            currentDir = parentDir
+        }
+
+        // Fall back to .xcodeproj in current directory only
         if let contents = try? fileManager.contentsOfDirectory(atPath: searchDirectory) {
             for item in contents {
                 if item.hasSuffix(".xcodeproj") {
                     let xcodeProjPath = (searchDirectory as NSString).appendingPathComponent(item)
                     let resolvedPath = (xcodeProjPath as NSString).appendingPathComponent(
                         "project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
-                    )
-                    if fileManager.fileExists(atPath: resolvedPath) {
-                        return resolvedPath
-                    }
-                }
-                if item.hasSuffix(".xcworkspace") {
-                    let xcworkspacePath = (searchDirectory as NSString).appendingPathComponent(item)
-                    let resolvedPath = (xcworkspacePath as NSString).appendingPathComponent(
-                        "xcshareddata/swiftpm/Package.resolved"
                     )
                     if fileManager.fileExists(atPath: resolvedPath) {
                         return resolvedPath
