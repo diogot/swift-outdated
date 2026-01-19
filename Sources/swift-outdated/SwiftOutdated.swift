@@ -22,6 +22,9 @@ struct SwiftOutdated: AsyncParsableCommand {
     @Flag(name: .long, help: "Show all dependencies, not just outdated ones")
     var all: Bool = false
 
+    @Flag(name: .shortAndLong, help: "Print the path of the Package.resolved file being used")
+    var verbose: Bool = false
+
     @Argument(help: "Path to directory, .xcodeproj, .xcworkspace, or Package.resolved file")
     var path: String?
 
@@ -35,6 +38,10 @@ struct SwiftOutdated: AsyncParsableCommand {
             resolvedPath = try locator.locate(from: searchPath)
         } catch let error as PackageResolvedError {
             throw ValidationError(error.localizedDescription)
+        }
+
+        if verbose {
+            print("Using: \(resolvedPath)\n")
         }
 
         // Parse Package.resolved
