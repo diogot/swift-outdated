@@ -71,30 +71,52 @@ struct SwiftOutdated: AsyncParsableCommand {
             if let manifest = try? manifestParser.parse(from: packageSwiftPath) {
                 // Match dependencies with their version requirements
                 dependencies = dependencies.map { dep in
-                    let requirement = manifest.dependencies.first { manifestDep in
-                        manifestDep.identity == dep.name.lowercased()
-                    }?.requirement
-                    return dep.withVersionRequirement(requirement)
+                    let manifestDep = manifest.dependencies.first { $0.identity == dep.name.lowercased() }
+                    return dep.withVersionRequirement(manifestDep?.requirement, sources: manifestDep?.sourcePaths ?? [])
                 }
             }
         }
 
-        // Fall back to xcodeproj for Xcode projects without Package.swift
+        // Fall back to workspace/xcodeproj for Xcode projects without Package.swift
         if dependencies.first?.versionRequirement == nil {
-            let xcodeprojLocator = XcodeprojLocator()
-            if let xcodeprojPath = xcodeprojLocator.locate(fromResolvedPath: resolvedPath) {
-                if verbose {
-                    print("Xcode project: \(xcodeprojPath)\n")
-                }
+            // Try workspace first (contains multiple projects)
+            let workspaceLocator = WorkspaceLocator()
+            if let workspacePath = workspaceLocator.locate(fromResolvedPath: resolvedPath) {
+                let workspaceParser = WorkspaceParser()
+                if let result = try? workspaceParser.parse(from: workspacePath) {
+                    if verbose {
+                        print("Workspace: \(workspacePath)")
+                        for path in result.xcodeprojPaths {
+                            print("  Xcode project: \(path)")
+                        }
+                        for path in result.swiftPackagePaths {
+                            print("  Package.swift: \(path)")
+                        }
+                        print("")
+                    }
 
-                let xcodeprojParser = XcodeprojParser()
-                if let manifest = try? xcodeprojParser.parse(from: xcodeprojPath) {
                     // Match dependencies with their version requirements
                     dependencies = dependencies.map { dep in
-                        let requirement = manifest.dependencies.first { manifestDep in
-                            manifestDep.identity == dep.name.lowercased()
-                        }?.requirement
-                        return dep.withVersionRequirement(requirement)
+                        let manifestDep = result.manifest.dependencies.first { $0.identity == dep.name.lowercased() }
+                        return dep.withVersionRequirement(manifestDep?.requirement, sources: manifestDep?.sourcePaths ?? [])
+                    }
+                }
+            }
+            // Fall back to single xcodeproj if no workspace found
+            else {
+                let xcodeprojLocator = XcodeprojLocator()
+                if let xcodeprojPath = xcodeprojLocator.locate(fromResolvedPath: resolvedPath) {
+                    if verbose {
+                        print("Xcode project: \(xcodeprojPath)\n")
+                    }
+
+                    let xcodeprojParser = XcodeprojParser()
+                    if let manifest = try? xcodeprojParser.parse(from: xcodeprojPath) {
+                        // Match dependencies with their version requirements
+                        dependencies = dependencies.map { dep in
+                            let manifestDep = manifest.dependencies.first { $0.identity == dep.name.lowercased() }
+                            return dep.withVersionRequirement(manifestDep?.requirement, sources: manifestDep?.sourcePaths ?? [])
+                        }
                     }
                 }
             }
@@ -114,7 +136,7 @@ struct SwiftOutdated: AsyncParsableCommand {
                 throw ValidationError("Failed to format output as JSON")
             }
         } else {
-            print(output.formatTable(checkedDependencies, showAll: all))
+            print(output.formatTable(checkedDependencies, showAll: all, verbose: verbose))
         }
     }
 }

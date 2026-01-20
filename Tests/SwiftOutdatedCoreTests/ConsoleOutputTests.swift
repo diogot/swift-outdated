@@ -115,4 +115,105 @@ struct ConsoleOutputTests {
         let parsed = try JSONSerialization.jsonObject(with: data)
         #expect(parsed is [[String: Any]])
     }
+
+    @Test("Format table shows blocked updates section")
+    func formatTableShowsBlockedUpdates() {
+        let dependencies = [
+            Dependency(
+                name: "test-package",
+                repositoryURL: "https://example.com/test.git",
+                currentVersion: SemanticVersion(major: 1, minor: 0, patch: 0),
+                currentRevision: "abc",
+                latestVersion: SemanticVersion(major: 2, minor: 0, patch: 0),
+                versionRequirement: .upToNextMajor(from: SemanticVersion(major: 1, minor: 0, patch: 0)),
+                requirementSources: ["/path/to/MyApp.xcodeproj"]
+            )
+        ]
+
+        let result = output.formatTable(dependencies)
+
+        #expect(result.contains("Blocked updates:"))
+        #expect(result.contains("test-package"))
+        #expect(result.contains("MyApp.xcodeproj"))
+    }
+
+    @Test("Format table shows multiple sources for blocked update")
+    func formatTableShowsMultipleSources() {
+        let dependencies = [
+            Dependency(
+                name: "test-package",
+                repositoryURL: "https://example.com/test.git",
+                currentVersion: SemanticVersion(major: 1, minor: 0, patch: 0),
+                currentRevision: "abc",
+                latestVersion: SemanticVersion(major: 2, minor: 0, patch: 0),
+                versionRequirement: .upToNextMajor(from: SemanticVersion(major: 1, minor: 0, patch: 0)),
+                requirementSources: ["/path/to/MyApp.xcodeproj", "/path/to/Services.xcodeproj"]
+            )
+        ]
+
+        let result = output.formatTable(dependencies)
+
+        #expect(result.contains("Blocked updates:"))
+        #expect(result.contains("MyApp.xcodeproj"))
+        #expect(result.contains("Services.xcodeproj"))
+    }
+
+    @Test("Format table shows Package.swift parent directory name")
+    func formatTableShowsPackageSwiftParentDirectory() {
+        let dependencies = [
+            Dependency(
+                name: "test-package",
+                repositoryURL: "https://example.com/test.git",
+                currentVersion: SemanticVersion(major: 1, minor: 0, patch: 0),
+                currentRevision: "abc",
+                latestVersion: SemanticVersion(major: 2, minor: 0, patch: 0),
+                versionRequirement: .upToNextMajor(from: SemanticVersion(major: 1, minor: 0, patch: 0)),
+                requirementSources: ["/path/to/CoreModule/Package.swift"]
+            )
+        ]
+
+        let result = output.formatTable(dependencies)
+
+        #expect(result.contains("Blocked updates:"))
+        #expect(result.contains("CoreModule"))
+        #expect(!result.contains("Package.swift"))
+    }
+
+    @Test("Format table does not show blocked updates when all can auto-update")
+    func formatTableNoBlockedUpdatesWhenAutoUpdate() {
+        let dependencies = [
+            Dependency(
+                name: "test-package",
+                repositoryURL: "https://example.com/test.git",
+                currentVersion: SemanticVersion(major: 1, minor: 0, patch: 0),
+                currentRevision: "abc",
+                latestVersion: SemanticVersion(major: 1, minor: 5, patch: 0),
+                versionRequirement: .upToNextMajor(from: SemanticVersion(major: 1, minor: 0, patch: 0)),
+                requirementSources: ["/path/to/MyApp.xcodeproj"]
+            )
+        ]
+
+        let result = output.formatTable(dependencies)
+
+        #expect(!result.contains("Blocked updates:"))
+    }
+
+    @Test("Format table does not show blocked updates without sources")
+    func formatTableNoBlockedUpdatesWithoutSources() {
+        let dependencies = [
+            Dependency(
+                name: "test-package",
+                repositoryURL: "https://example.com/test.git",
+                currentVersion: SemanticVersion(major: 1, minor: 0, patch: 0),
+                currentRevision: "abc",
+                latestVersion: SemanticVersion(major: 2, minor: 0, patch: 0),
+                versionRequirement: .upToNextMajor(from: SemanticVersion(major: 1, minor: 0, patch: 0)),
+                requirementSources: []
+            )
+        ]
+
+        let result = output.formatTable(dependencies)
+
+        #expect(!result.contains("Blocked updates:"))
+    }
 }

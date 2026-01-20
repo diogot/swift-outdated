@@ -144,6 +144,58 @@ struct PackageManifestTests {
         #expect(dep2.identity == "kingfisher")
         #expect(dep3.identity == "swift-nio")
     }
+
+    @Test("ManifestDependency with single source path")
+    func manifestDependencyWithSingleSourcePath() {
+        let dep = ManifestDependency(
+            url: "https://github.com/example/test.git",
+            requirement: .unknown,
+            sourcePath: "/path/to/MyApp.xcodeproj"
+        )
+
+        #expect(dep.sourcePaths.count == 1)
+        #expect(dep.sourcePaths[0] == "/path/to/MyApp.xcodeproj")
+    }
+
+    @Test("ManifestDependency with multiple source paths")
+    func manifestDependencyWithMultipleSourcePaths() {
+        let dep = ManifestDependency(
+            url: "https://github.com/example/test.git",
+            requirement: .unknown,
+            sourcePaths: ["/path/to/App.xcodeproj", "/path/to/Core/Package.swift"]
+        )
+
+        #expect(dep.sourcePaths.count == 2)
+        #expect(dep.sourcePaths[0] == "/path/to/App.xcodeproj")
+        #expect(dep.sourcePaths[1] == "/path/to/Core/Package.swift")
+    }
+
+    @Test("ManifestDependency without source path has empty array")
+    func manifestDependencyWithoutSourcePath() {
+        let dep = ManifestDependency(
+            url: "https://github.com/example/test.git",
+            requirement: .unknown
+        )
+
+        #expect(dep.sourcePaths.isEmpty)
+    }
+
+    @Test("ManifestDependency addingSourcePath creates new instance")
+    func manifestDependencyAddingSourcePath() {
+        let dep = ManifestDependency(
+            url: "https://github.com/example/test.git",
+            requirement: .upToNextMajor(from: SemanticVersion(major: 1, minor: 0, patch: 0)),
+            sourcePath: "/path/to/App.xcodeproj"
+        )
+
+        let updated = dep.addingSourcePath("/path/to/Core/Package.swift")
+
+        #expect(updated.sourcePaths.count == 2)
+        #expect(updated.sourcePaths[0] == "/path/to/App.xcodeproj")
+        #expect(updated.sourcePaths[1] == "/path/to/Core/Package.swift")
+        #expect(updated.url == dep.url)
+        #expect(updated.requirement == dep.requirement)
+    }
 }
 
 @Suite("VersionRequirement Tests")

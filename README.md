@@ -6,8 +6,10 @@ A CLI tool that checks Swift package dependencies for available updates. Similar
 
 - Parses `Package.resolved` v2 and v3 formats
 - Supports standalone Swift packages and Xcode projects/workspaces
+- **Workspace support**: Parses all projects and Swift packages in a workspace
 - Fetches latest versions from Git repositories
 - **Color-coded output**: green for auto-updatable, red for manual update required
+- **Blocked updates reporting**: Shows which file is blocking each update
 - Outputs as formatted table or JSON
 - Concurrent version checking for fast results
 
@@ -61,14 +63,19 @@ swift-outdated -v
 |-------------------------|---------|--------|
 | swift-argument-parser   | 1.2.0   | 1.5.0  |  (green - can auto-update)
 | swift-nio               | 2.0.0   | 3.0.0  |  (red - requires manual update)
+
+Blocked updates:
+  swift-nio: from: 2.0.0 (up to next major) (MyApp.xcodeproj)
 ```
 
 ### Color coding
 
-When `Package.swift` is found, the latest version column is color-coded:
+When `Package.swift` or `.xcodeproj` is found, the latest version column is color-coded:
 
 - **Green**: The update can be applied automatically (within your version constraints)
-- **Red**: Requires updating the version constraint in `Package.swift`
+- **Red**: Requires updating the version constraint in `Package.swift` or `.xcodeproj`
+
+When there are blocked updates, a summary shows which file defines the constraint blocking each update. For workspaces with multiple projects or Swift packages, all sources are listed.
 
 ### JSON output
 
@@ -88,6 +95,10 @@ When `Package.swift` is found, the latest version column is color-coded:
 
 - macOS 13+
 - Swift 6.0+
+
+## Acknowledgments
+
+This project was inspired by [swift-outdated](https://github.com/kiliankoe/swift-outdated) by Kilian Koeltzsch.
 
 ## License
 

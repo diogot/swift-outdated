@@ -10,19 +10,21 @@ public struct PackageManifestParser: Sendable {
     public func parse(from path: String) throws -> PackageManifest {
         let url = URL(fileURLWithPath: path)
         let content = try String(contentsOf: url, encoding: .utf8)
-        return parse(content: content)
+        return parse(content: content, sourcePath: path)
     }
 
     /// Parse Package.swift content
-    /// - Parameter content: The Package.swift file content
+    /// - Parameters:
+    ///   - content: The Package.swift file content
+    ///   - sourcePath: Optional path to the source file for tracking
     /// - Returns: Parsed manifest with dependencies
-    public func parse(content: String) -> PackageManifest {
-        let dependencies = parseDependencies(from: content)
+    public func parse(content: String, sourcePath: String? = nil) -> PackageManifest {
+        let dependencies = parseDependencies(from: content, sourcePath: sourcePath)
         return PackageManifest(dependencies: dependencies)
     }
 
     /// Parse all .package() declarations from content
-    private func parseDependencies(from content: String) -> [ManifestDependency] {
+    private func parseDependencies(from content: String, sourcePath: String? = nil) -> [ManifestDependency] {
         var dependencies: [ManifestDependency] = []
 
         // Pattern to match .package( ... ) declarations
@@ -40,7 +42,7 @@ public struct PackageManifestParser: Sendable {
             guard let matchRange = Range(match.range, in: content) else { continue }
             let declaration = String(content[matchRange])
 
-            if let dependency = parseDependency(from: declaration) {
+            if let dependency = parseDependency(from: declaration, sourcePath: sourcePath) {
                 dependencies.append(dependency)
             }
         }
@@ -49,14 +51,14 @@ public struct PackageManifestParser: Sendable {
     }
 
     /// Parse a single .package() declaration
-    private func parseDependency(from declaration: String) -> ManifestDependency? {
+    private func parseDependency(from declaration: String, sourcePath: String?) -> ManifestDependency? {
         // Extract URL
         guard let url = extractURL(from: declaration) else { return nil }
 
         // Determine requirement type
         let requirement = extractRequirement(from: declaration)
 
-        return ManifestDependency(url: url, requirement: requirement)
+        return ManifestDependency(url: url, requirement: requirement, sourcePath: sourcePath)
     }
 
     /// Extract URL from declaration

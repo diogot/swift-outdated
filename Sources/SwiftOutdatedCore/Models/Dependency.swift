@@ -9,6 +9,7 @@ public struct Dependency: Sendable, Equatable {
     public let latestVersion: SemanticVersion?
     public let branch: String?
     public let versionRequirement: VersionRequirement?
+    public let requirementSources: [String]
 
     public init(
         name: String,
@@ -17,7 +18,8 @@ public struct Dependency: Sendable, Equatable {
         currentRevision: String,
         latestVersion: SemanticVersion? = nil,
         branch: String? = nil,
-        versionRequirement: VersionRequirement? = nil
+        versionRequirement: VersionRequirement? = nil,
+        requirementSources: [String] = []
     ) {
         self.name = name
         self.repositoryURL = repositoryURL
@@ -26,6 +28,7 @@ public struct Dependency: Sendable, Equatable {
         self.latestVersion = latestVersion
         self.branch = branch
         self.versionRequirement = versionRequirement
+        self.requirementSources = requirementSources
     }
 
     /// Returns true if the dependency is outdated (latest version > current version)
@@ -53,12 +56,13 @@ public struct Dependency: Sendable, Equatable {
             currentRevision: currentRevision,
             latestVersion: version,
             branch: branch,
-            versionRequirement: versionRequirement
+            versionRequirement: versionRequirement,
+            requirementSources: requirementSources
         )
     }
 
-    /// Returns a new Dependency with the version requirement set
-    public func withVersionRequirement(_ requirement: VersionRequirement?) -> Dependency {
+    /// Returns a new Dependency with the version requirement and sources set
+    public func withVersionRequirement(_ requirement: VersionRequirement?, sources: [String] = []) -> Dependency {
         Dependency(
             name: name,
             repositoryURL: repositoryURL,
@@ -66,7 +70,8 @@ public struct Dependency: Sendable, Equatable {
             currentRevision: currentRevision,
             latestVersion: latestVersion,
             branch: branch,
-            versionRequirement: requirement
+            versionRequirement: requirement,
+            requirementSources: sources
         )
     }
 }

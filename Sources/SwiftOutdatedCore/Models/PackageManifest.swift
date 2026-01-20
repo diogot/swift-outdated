@@ -9,14 +9,27 @@ public struct PackageManifest: Sendable {
     }
 }
 
-/// Represents a dependency declaration in Package.swift
+/// Represents a dependency declaration in Package.swift or xcodeproj
 public struct ManifestDependency: Sendable, Equatable {
     public let url: String
     public let requirement: VersionRequirement
+    public let sourcePaths: [String]
 
-    public init(url: String, requirement: VersionRequirement) {
+    public init(url: String, requirement: VersionRequirement, sourcePath: String? = nil) {
         self.url = url
         self.requirement = requirement
+        self.sourcePaths = sourcePath.map { [$0] } ?? []
+    }
+
+    public init(url: String, requirement: VersionRequirement, sourcePaths: [String]) {
+        self.url = url
+        self.requirement = requirement
+        self.sourcePaths = sourcePaths
+    }
+
+    /// Returns a new ManifestDependency with an additional source path
+    public func addingSourcePath(_ path: String) -> ManifestDependency {
+        ManifestDependency(url: url, requirement: requirement, sourcePaths: sourcePaths + [path])
     }
 
     /// Normalized identity derived from URL (matches Package.resolved identity)

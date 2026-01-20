@@ -32,12 +32,12 @@ Sources/
 └── SwiftOutdatedCore/        # Core library
     ├── Models/
     │   ├── PackageResolved.swift   # Package.resolved v2/v3 parsing
-    │   ├── PackageManifest.swift   # Version requirement types
+    │   ├── PackageManifest.swift   # Version requirement types + ManifestDependency
     │   └── Dependency.swift        # Dependency model + SemanticVersion
     ├── Services/
     │   ├── ResolvedFileLocator.swift    # Find Package.resolved files
     │   ├── PackageManifestParser.swift  # Parse Package.swift for requirements
-    │   ├── XcodeprojParser.swift        # Parse .xcodeproj for SPM requirements
+    │   ├── XcodeprojParser.swift        # Parse .xcodeproj/.xcworkspace for SPM requirements
     │   ├── GitTagFetcher.swift          # Fetch tags via git ls-remote
     │   └── VersionChecker.swift         # Compare versions
     └── Output/
@@ -52,7 +52,8 @@ Sources/
 - **Semantic Versioning**: Full semver parsing including prereleases and build metadata
 - **Workspace Priority**: Prefers workspace Package.resolved over xcodeproj to avoid stale files
 - **Color Output**: ANSI colors for TTY, auto-disabled for pipes/redirects
-- **XcodeProj Support**: Uses XcodeProj library to parse .pbxproj for SPM version requirements
+- **Workspace Support**: Parses all .xcodeproj and Package.swift files in a workspace, merging dependencies
+- **Multi-source Tracking**: Tracks which files define each dependency for blocked update reporting
 
 ## CLI Usage
 
@@ -81,6 +82,12 @@ swift-outdated -v
 When Package.swift or .xcodeproj is found, the latest version is color-coded:
 - **Green**: Can auto-update (latest version satisfies version requirement)
 - **Red**: Requires manual update (latest version outside version requirement)
+
+When there are blocked updates (red), a "Blocked updates" section shows which file is blocking each update:
+```
+Blocked updates:
+  package-name: from: 1.0.0 (up to next major) (App.xcodeproj, CoreModule)
+```
 
 Supported version requirements:
 - `from:` / `.upToNextMajor(from:)`

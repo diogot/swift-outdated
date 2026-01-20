@@ -90,6 +90,54 @@ struct DependencyTests {
         #expect(updated.name == original.name)
         #expect(updated.currentVersion == original.currentVersion)
     }
+
+    @Test("withVersionRequirement sets requirement and sources")
+    func withVersionRequirementSetsSources() {
+        let original = Dependency(
+            name: "test",
+            repositoryURL: "https://example.com/test.git",
+            currentVersion: SemanticVersion(major: 1, minor: 0, patch: 0),
+            currentRevision: "abc"
+        )
+
+        let requirement = VersionRequirement.upToNextMajor(from: SemanticVersion(major: 1, minor: 0, patch: 0))
+        let sources = ["/path/to/App.xcodeproj", "/path/to/Core/Package.swift"]
+        let updated = original.withVersionRequirement(requirement, sources: sources)
+
+        #expect(updated.versionRequirement == requirement)
+        #expect(updated.requirementSources.count == 2)
+        #expect(updated.requirementSources[0] == "/path/to/App.xcodeproj")
+        #expect(updated.requirementSources[1] == "/path/to/Core/Package.swift")
+    }
+
+    @Test("withLatestVersion preserves requirementSources")
+    func withLatestVersionPreservesSources() {
+        let original = Dependency(
+            name: "test",
+            repositoryURL: "https://example.com/test.git",
+            currentVersion: SemanticVersion(major: 1, minor: 0, patch: 0),
+            currentRevision: "abc",
+            versionRequirement: .upToNextMajor(from: SemanticVersion(major: 1, minor: 0, patch: 0)),
+            requirementSources: ["/path/to/App.xcodeproj"]
+        )
+
+        let updated = original.withLatestVersion(SemanticVersion(major: 2, minor: 0, patch: 0))
+
+        #expect(updated.requirementSources.count == 1)
+        #expect(updated.requirementSources[0] == "/path/to/App.xcodeproj")
+    }
+
+    @Test("Dependency with empty requirementSources by default")
+    func dependencyHasEmptySourcesByDefault() {
+        let dependency = Dependency(
+            name: "test",
+            repositoryURL: "https://example.com/test.git",
+            currentVersion: SemanticVersion(major: 1, minor: 0, patch: 0),
+            currentRevision: "abc"
+        )
+
+        #expect(dependency.requirementSources.isEmpty)
+    }
 }
 
 @Suite("SemanticVersion Tests")

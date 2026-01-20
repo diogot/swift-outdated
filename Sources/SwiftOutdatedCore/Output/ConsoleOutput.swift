@@ -25,8 +25,9 @@ public struct ConsoleOutput: Sendable {
     /// - Parameters:
     ///   - dependencies: Array of dependencies to format
     ///   - showAll: If true, show all dependencies; if false, only show outdated ones
+    ///   - verbose: If true, show additional details like blocking sources
     /// - Returns: Formatted table string
-    public func formatTable(_ dependencies: [Dependency], showAll: Bool = false) -> String {
+    public func formatTable(_ dependencies: [Dependency], showAll: Bool = false, verbose: Bool = false) -> String {
         let toDisplay = showAll ? dependencies : dependencies.filter { $0.isOutdated }
 
         if toDisplay.isEmpty {
@@ -84,7 +85,33 @@ public struct ConsoleOutput: Sendable {
             lines.append("| \(name) | \(current) | \(latest) |")
         }
 
+        // Add blocked updates footnote (always shown when there are blocked updates)
+        let blockedDeps = toDisplay.filter { $0.isOutdated && !$0.canAutoUpdate && !$0.requirementSources.isEmpty }
+        if !blockedDeps.isEmpty {
+            lines.append("")
+            lines.append("Blocked updates:")
+            for dep in blockedDeps {
+                if let requirement = dep.versionRequirement {
+                    let sourceNames = dep.requirementSources.map { formatSourceName($0) }
+                    let sourcesText = sourceNames.joined(separator: ", ")
+                    lines.append("  \(dep.name): \(requirement.description) (\(sourcesText))")
+                }
+            }
+        }
+
         return lines.joined(separator: "\n")
+    }
+
+    /// Format a source path for display (show parent directory for Package.swift files)
+    private func formatSourceName(_ path: String) -> String {
+        let fileName = (path as NSString).lastPathComponent
+        if fileName == "Package.swift" {
+            // Show parent directory name for Package.swift files
+            let parentPath = (path as NSString).deletingLastPathComponent
+            let parentName = (parentPath as NSString).lastPathComponent
+            return parentName
+        }
+        return fileName
     }
 
     /// Format dependencies as JSON
