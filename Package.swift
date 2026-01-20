@@ -11,7 +11,8 @@ let package = Package(
         .executable(name: "swift-outdated", targets: ["swift-outdated"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.0")
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.0"),
+        .package(url: "https://github.com/tuist/XcodeProj.git", from: "8.0.0")
     ],
     targets: [
         .executableTarget(
@@ -22,7 +23,10 @@ let package = Package(
             ]
         ),
         .target(
-            name: "SwiftOutdatedCore"
+            name: "SwiftOutdatedCore",
+            dependencies: [
+                .product(name: "XcodeProj", package: "XcodeProj")
+            ]
         ),
         .testTarget(
             name: "SwiftOutdatedCoreTests",

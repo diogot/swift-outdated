@@ -67,9 +67,9 @@ public struct ConsoleOutput: Sendable {
             let latestText = dep.latestVersion?.description ?? "unknown"
             let latestPadded = latestText.padding(toLength: maxLatestWidth, withPad: " ", startingAt: 0)
 
-            // Colorize latest version if outdated
+            // Colorize latest version if outdated and we have a version requirement
             let latest: String
-            if useColors && dep.isOutdated {
+            if useColors && dep.isOutdated && dep.versionRequirement != nil {
                 if dep.canAutoUpdate {
                     // Green: can be updated automatically (within version requirement)
                     latest = ANSIColor.green.apply(to: latestPadded)
@@ -105,7 +105,7 @@ public struct ConsoleOutput: Sendable {
             if showAll {
                 obj["outdated"] = dep.isOutdated
             }
-            if dep.isOutdated {
+            if dep.isOutdated && dep.versionRequirement != nil {
                 obj["canAutoUpdate"] = dep.canAutoUpdate
             }
             return obj

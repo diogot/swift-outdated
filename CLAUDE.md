@@ -37,6 +37,7 @@ Sources/
     ├── Services/
     │   ├── ResolvedFileLocator.swift    # Find Package.resolved files
     │   ├── PackageManifestParser.swift  # Parse Package.swift for requirements
+    │   ├── XcodeprojParser.swift        # Parse .xcodeproj for SPM requirements
     │   ├── GitTagFetcher.swift          # Fetch tags via git ls-remote
     │   └── VersionChecker.swift         # Compare versions
     └── Output/
@@ -51,6 +52,7 @@ Sources/
 - **Semantic Versioning**: Full semver parsing including prereleases and build metadata
 - **Workspace Priority**: Prefers workspace Package.resolved over xcodeproj to avoid stale files
 - **Color Output**: ANSI colors for TTY, auto-disabled for pipes/redirects
+- **XcodeProj Support**: Uses XcodeProj library to parse .pbxproj for SPM version requirements
 
 ## CLI Usage
 
@@ -76,7 +78,7 @@ swift-outdated -v
 
 ## Color Output
 
-When Package.swift is found, the latest version is color-coded:
+When Package.swift or .xcodeproj is found, the latest version is color-coded:
 - **Green**: Can auto-update (latest version satisfies version requirement)
 - **Red**: Requires manual update (latest version outside version requirement)
 
@@ -98,3 +100,4 @@ Tests use Swift Testing framework (`@Test`, `#expect`). Key test files:
 - `VersionCheckerTests.swift` - Version comparison and update checking
 - `ConsoleOutputTests.swift` - Table and JSON output formatting
 - `PackageManifestTests.swift` - Package.swift parsing and version requirement satisfaction
+- `XcodeprojParserTests.swift` - XcodeprojLocator file location tests

@@ -79,6 +79,27 @@ struct SwiftOutdated: AsyncParsableCommand {
             }
         }
 
+        // Fall back to xcodeproj for Xcode projects without Package.swift
+        if dependencies.first?.versionRequirement == nil {
+            let xcodeprojLocator = XcodeprojLocator()
+            if let xcodeprojPath = xcodeprojLocator.locate(fromResolvedPath: resolvedPath) {
+                if verbose {
+                    print("Xcode project: \(xcodeprojPath)\n")
+                }
+
+                let xcodeprojParser = XcodeprojParser()
+                if let manifest = try? xcodeprojParser.parse(from: xcodeprojPath) {
+                    // Match dependencies with their version requirements
+                    dependencies = dependencies.map { dep in
+                        let requirement = manifest.dependencies.first { manifestDep in
+                            manifestDep.identity == dep.name.lowercased()
+                        }?.requirement
+                        return dep.withVersionRequirement(requirement)
+                    }
+                }
+            }
+        }
+
         // Check for updates
         let checker = VersionChecker()
         let checkedDependencies = await checker.checkForUpdates(dependencies)
