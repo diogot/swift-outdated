@@ -59,13 +59,13 @@ swift-outdated -v
 ### Example output
 
 ```
-| Package                 | Current | Latest |
-|-------------------------|---------|--------|
-| swift-argument-parser   | 1.2.0   | 1.5.0  |  (green - can auto-update)
-| swift-nio               | 2.0.0   | 3.0.0  |  (red - requires manual update)
+| Package   | Current | Latest |
+|-----------|---------|--------|
+| alamofire | 5.8.0   | 5.10.0 |  <- green (can auto-update)
+| xcodeproj | 8.27.7  | 9.7.2  |  <- red (requires manual update)
 
 Blocked updates:
-  swift-nio: from: 2.0.0 (up to next major) (MyApp.xcodeproj)
+  xcodeproj: from: 8.0.0 (up to next major) (MyApp)
 ```
 
 ### Color coding
@@ -82,11 +82,18 @@ When there are blocked updates, a summary shows which file defines the constrain
 ```json
 [
   {
-    "package": "swift-argument-parser",
-    "currentVersion": "1.2.0",
-    "latestVersion": "1.5.0",
-    "repositoryURL": "https://github.com/apple/swift-argument-parser.git",
-    "canAutoUpdate": true
+    "canAutoUpdate": true,
+    "currentVersion": "5.8.0",
+    "latestVersion": "5.10.0",
+    "package": "alamofire",
+    "repositoryURL": "https://github.com/Alamofire/Alamofire.git"
+  },
+  {
+    "canAutoUpdate": false,
+    "currentVersion": "8.27.7",
+    "latestVersion": "9.7.2",
+    "package": "xcodeproj",
+    "repositoryURL": "https://github.com/tuist/XcodeProj.git"
   }
 ]
 ```
