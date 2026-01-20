@@ -1,8 +1,25 @@
 import Foundation
 
+/// ANSI color codes for terminal output
+public enum ANSIColor: String, Sendable {
+    case reset = "\u{001B}[0m"
+    case red = "\u{001B}[31m"
+    case green = "\u{001B}[32m"
+    case yellow = "\u{001B}[33m"
+
+    public func apply(to string: String) -> String {
+        "\(rawValue)\(string)\(ANSIColor.reset.rawValue)"
+    }
+}
+
 /// Handles formatting and outputting dependency information
 public struct ConsoleOutput: Sendable {
-    public init() {}
+    /// Whether to use colors in output (default: true for TTY)
+    public let useColors: Bool
+
+    public init(useColors: Bool = isatty(STDOUT_FILENO) != 0) {
+        self.useColors = useColors
+    }
 
     /// Format dependencies as a table for console output
     /// - Parameters:
@@ -47,7 +64,23 @@ public struct ConsoleOutput: Sendable {
         for dep in toDisplay {
             let name = dep.name.padding(toLength: maxNameWidth, withPad: " ", startingAt: 0)
             let current = (dep.currentVersion?.description ?? "unknown").padding(toLength: maxCurrentWidth, withPad: " ", startingAt: 0)
-            let latest = (dep.latestVersion?.description ?? "unknown").padding(toLength: maxLatestWidth, withPad: " ", startingAt: 0)
+            let latestText = dep.latestVersion?.description ?? "unknown"
+            let latestPadded = latestText.padding(toLength: maxLatestWidth, withPad: " ", startingAt: 0)
+
+            // Colorize latest version if outdated
+            let latest: String
+            if useColors && dep.isOutdated {
+                if dep.canAutoUpdate {
+                    // Green: can be updated automatically (within version requirement)
+                    latest = ANSIColor.green.apply(to: latestPadded)
+                } else {
+                    // Red: requires manual constraint update
+                    latest = ANSIColor.red.apply(to: latestPadded)
+                }
+            } else {
+                latest = latestPadded
+            }
+
             lines.append("| \(name) | \(current) | \(latest) |")
         }
 
@@ -71,6 +104,9 @@ public struct ConsoleOutput: Sendable {
             ]
             if showAll {
                 obj["outdated"] = dep.isOutdated
+            }
+            if dep.isOutdated {
+                obj["canAutoUpdate"] = dep.canAutoUpdate
             }
             return obj
         }

@@ -8,6 +8,7 @@ public struct Dependency: Sendable, Equatable {
     public let currentRevision: String
     public let latestVersion: SemanticVersion?
     public let branch: String?
+    public let versionRequirement: VersionRequirement?
 
     public init(
         name: String,
@@ -15,7 +16,8 @@ public struct Dependency: Sendable, Equatable {
         currentVersion: SemanticVersion?,
         currentRevision: String,
         latestVersion: SemanticVersion? = nil,
-        branch: String? = nil
+        branch: String? = nil,
+        versionRequirement: VersionRequirement? = nil
     ) {
         self.name = name
         self.repositoryURL = repositoryURL
@@ -23,6 +25,7 @@ public struct Dependency: Sendable, Equatable {
         self.currentRevision = currentRevision
         self.latestVersion = latestVersion
         self.branch = branch
+        self.versionRequirement = versionRequirement
     }
 
     /// Returns true if the dependency is outdated (latest version > current version)
@@ -33,6 +36,14 @@ public struct Dependency: Sendable, Equatable {
         return latest > current
     }
 
+    /// Returns true if the latest version can be updated automatically (satisfies version requirement)
+    public var canAutoUpdate: Bool {
+        guard let latest = latestVersion, let requirement = versionRequirement else {
+            return true // If we don't know the requirement, assume it can auto-update
+        }
+        return requirement.isSatisfied(by: latest)
+    }
+
     /// Returns a new Dependency with the latest version set
     public func withLatestVersion(_ version: SemanticVersion?) -> Dependency {
         Dependency(
@@ -41,7 +52,21 @@ public struct Dependency: Sendable, Equatable {
             currentVersion: currentVersion,
             currentRevision: currentRevision,
             latestVersion: version,
-            branch: branch
+            branch: branch,
+            versionRequirement: versionRequirement
+        )
+    }
+
+    /// Returns a new Dependency with the version requirement set
+    public func withVersionRequirement(_ requirement: VersionRequirement?) -> Dependency {
+        Dependency(
+            name: name,
+            repositoryURL: repositoryURL,
+            currentVersion: currentVersion,
+            currentRevision: currentRevision,
+            latestVersion: latestVersion,
+            branch: branch,
+            versionRequirement: requirement
         )
     }
 }

@@ -53,11 +53,30 @@ struct SwiftOutdated: AsyncParsableCommand {
         }
 
         // Convert pins to dependencies
-        let dependencies = resolved.pins.map { Dependency.from(pin: $0) }
+        var dependencies = resolved.pins.map { Dependency.from(pin: $0) }
 
         if dependencies.isEmpty {
             print("No dependencies found in Package.resolved")
             return
+        }
+
+        // Try to parse Package.swift for version requirements
+        let packageSwiftLocator = PackageSwiftLocator()
+        if let packageSwiftPath = packageSwiftLocator.locate(fromResolvedPath: resolvedPath) {
+            if verbose {
+                print("Package.swift: \(packageSwiftPath)\n")
+            }
+
+            let manifestParser = PackageManifestParser()
+            if let manifest = try? manifestParser.parse(from: packageSwiftPath) {
+                // Match dependencies with their version requirements
+                dependencies = dependencies.map { dep in
+                    let requirement = manifest.dependencies.first { manifestDep in
+                        manifestDep.identity == dep.name.lowercased()
+                    }?.requirement
+                    return dep.withVersionRequirement(requirement)
+                }
+            }
         }
 
         // Check for updates
