@@ -36,10 +36,20 @@ jobs:
       - name: Build release binary
         run: swift build -c release
 
+      - name: Generate release notes
+        run: |
+          PREV_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+' | head -n1)
+          if [ -z "$PREV_TAG" ]; then
+            git log --pretty=format:"- %s" HEAD > release-notes.txt
+          else
+            git log --pretty=format:"- %s" ${PREV_TAG}..HEAD > release-notes.txt
+          fi
+
       - name: Create release
         uses: diogot/gh-actions-workflows/actions/create-release@main
         with:
           tag: v${{ steps.version.outputs.version }}
           title: v${{ steps.version.outputs.version }}
+          body-file: release-notes.txt
           files: .build/release/swift-outdated
           token: ${{ secrets.GITHUB_TOKEN }}
