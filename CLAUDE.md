@@ -2,6 +2,10 @@
 
 A CLI tool that checks for outdated Swift package dependencies.
 
+## Before Starting a New Feature
+
+**Remember to bump the version!** Before starting work on a new feature or bug fix, update the `VERSION` file at the project root with the new version number. This ensures the release workflow can create a new release when the changes are merged.
+
 ## Build Commands
 
 ```bash

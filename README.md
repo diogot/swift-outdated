@@ -15,6 +15,15 @@ A CLI tool that checks Swift package dependencies for available updates. Similar
 
 ## Installation
 
+### Download from GitHub Releases
+
+Download the latest binary from the [Releases](https://github.com/diogot/swift-outdated/releases) page:
+
+```bash
+curl -L https://github.com/diogot/swift-outdated/releases/latest/download/swift-outdated -o /usr/local/bin/swift-outdated
+chmod +x /usr/local/bin/swift-outdated
+```
+
 ### Build from source
 
 ```bash
@@ -102,6 +111,16 @@ When there are blocked updates, a summary shows which file defines the constrain
 
 - macOS 13+
 - Swift 6.0+
+
+## Contributing
+
+### Version Management
+
+The version is managed via the `VERSION` file at the project root. Before creating a release:
+
+1. Update the `VERSION` file with the new version number
+2. Commit and push to `main`
+3. Trigger the Release workflow manually from GitHub Actions
 
 ## Acknowledgments
 
