@@ -15,11 +15,18 @@ let package = Package(
         .package(url: "https://github.com/tuist/XcodeProj.git", from: "8.0.0")
     ],
     targets: [
+        .plugin(
+            name: "BuildVersionPlugin",
+            capability: .buildTool()
+        ),
         .executableTarget(
             name: "swift-outdated",
             dependencies: [
                 "SwiftOutdatedCore",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ],
+            plugins: [
+                .plugin(name: "BuildVersionPlugin")
             ]
         ),
         .target(

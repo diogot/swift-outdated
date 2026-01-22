@@ -13,7 +13,7 @@ struct SwiftOutdated: AsyncParsableCommand {
             By default, searches for Package.resolved in the current directory or within
             Xcode project/workspace directories.
             """,
-        version: "1.0.0"
+        version: GeneratedVersion.version
     )
 
     @Flag(name: .long, help: "Output results in JSON format")
