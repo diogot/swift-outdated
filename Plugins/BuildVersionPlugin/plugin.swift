@@ -8,7 +8,7 @@ struct BuildVersionPlugin: BuildToolPlugin {
         let outputFile = context.pluginWorkDirectoryURL.appending(path: "GeneratedVersion.swift")
 
         return [
-            .prebuildCommand(
+            .buildCommand(
                 displayName: "Generate version from VERSION file",
                 executable: URL(fileURLWithPath: "/bin/bash"),
                 arguments: [
@@ -23,7 +23,8 @@ struct BuildVersionPlugin: BuildToolPlugin {
                     EOF
                     """
                 ],
-                outputFilesDirectory: context.pluginWorkDirectoryURL
+                inputFiles: [versionFile],
+                outputFiles: [outputFile]
             )
         ]
     }
