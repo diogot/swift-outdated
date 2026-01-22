@@ -3,7 +3,6 @@ name: CI
 on:
   pull_request:
     branches:
-      - dev
       - main
 
 jobs:
@@ -22,20 +21,13 @@ jobs:
       - name: Run tests
         run: swift test
 
-      - name: Validate version (main)
-        if: github.base_ref == 'main'
-        uses: ./.github/actions/validate-version
-        with:
-          check-tag-exists: 'true'
-
-      - name: Validate version (dev)
+      - name: Validate version
         id: version-check
-        if: github.base_ref == 'dev'
         uses: ./.github/actions/validate-version
         with:
           check-tag-exists: 'true'
         continue-on-error: true
 
       - name: Version validation warning
-        if: github.base_ref == 'dev' && steps.version-check.outcome == 'failure'
-        run: echo "::warning::Version validation failed. Remember to bump the version before merging to main."
+        if: steps.version-check.outcome == 'failure'
+        run: echo "::warning::Version validation failed. Remember to bump the version before creating a release."
